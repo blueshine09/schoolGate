@@ -101,7 +101,7 @@ function apiCall(action, payload={}){
     url.searchParams.set('callback',callback);
     if(API_TOKEN) url.searchParams.set('token',API_TOKEN);
     url.searchParams.set('data',JSON.stringify(payload||{}));
-    script.onerror=()=>{ cleanup(); reject(new Error('Apps Script 웹앱에 연결하지 못했습니다. 배포 URL과 접근 권한을 확인하세요.')); };
+    script.onerror=()=>{ cleanup(); reject(new Error('GitHub에서 Apps Script 인증 웹앱을 직접 호출하지 못했습니다. 아래 Apps Script 웹앱 주소를 직접 열어 사용하세요.')); };
     script.src=url.toString();
     document.body.appendChild(script);
   });
@@ -113,7 +113,7 @@ function loadInitialData(retry){
     if(res && res.todayText) refs.dateStr.textContent=res.todayText;
     if(!res || !res.ok){ showStatus((res&&res.message)?res.message:'접근 권한을 확인할 수 없습니다.',true); return; }
     state.roster=res.roster||{}; state.selectedMonth=res.currentMonth||''; renderDashboard(res); refreshStudents(); refs.authBox.classList.remove('show','error'); refs.app.style.display=''; updateProgress(); setTimeout(applyResponsiveMode,0);
-  }).catch(err=>{ if(retry<2){ setTimeout(()=>loadInitialData(retry+1),800); return; } showStatus((err&&err.message)?err.message:'초기 데이터를 불러오지 못했습니다.',true); });
+  }).catch(err=>{ if(retry<2){ setTimeout(()=>loadInitialData(retry+1),800); return; } showStatus(((err&&err.message)?err.message:'초기 데이터를 불러오지 못했습니다.') + '  사용 주소: ' + API_URL,true); });
 }
 function showStatus(msg,error=false){ refs.authBox.textContent=msg; refs.authBox.className='top-message show'+(error?' error':''); }
 function buildGradeButtons(){ refs.gradeButtons.innerHTML=[1,2,3].map(g=>`<button type="button" class="sel-btn" data-grade="${g}">${g}학년</button>`).join(''); refs.gradeButtons.querySelectorAll('button').forEach(btn=>btn.addEventListener('click',()=>{ state.selectedGrade=btn.dataset.grade; state.selectedStudent=null; setActive(refs.gradeButtons,btn); $('gradeValue').textContent=btn.textContent; $('gradeValue').style.display=''; refreshStudents(); updateProgress(); showToast(btn.textContent+' 선택됨'); })); }
